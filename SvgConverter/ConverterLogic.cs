@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
@@ -248,8 +249,39 @@ namespace SvgConverter
             }
         }
 
+        private static string RemoveSpecialCharacters(string str)
+        {
+            var resultLine = "";
+            for (int i = 0; i < str.Length; i++)
+            {
+                if (str[i] == '/' && i > 0 && str[i-1] != '<')
+                    resultLine += '_';
+                else
+                    resultLine += str[i];
+            }
+            return resultLine;
+        }
+
         internal static ResourceDictionary ConvertFilesToResourceDictionary(IEnumerable<string> files, WpfDrawingSettings wpfDrawingSettings, ResKeyInfo resKeyInfo)
         {
+            foreach (var file in files)
+            {
+                var resultFile = new List<string>();
+                var fileStream = new StreamReader(file);
+
+                string line;
+                while ((line = fileStream.ReadLine()) != null)
+                {
+                    if (!line.Contains("xmlns") && line.Contains("/"))
+                        resultFile.Add(RemoveSpecialCharacters(line));
+                    else
+                        resultFile.Add(line);
+                }
+                
+                fileStream.Close();
+                File.WriteAllLines(file, resultFile);
+            }
+
             var dict = new ResourceDictionary();
             foreach (var file in files)
             {
