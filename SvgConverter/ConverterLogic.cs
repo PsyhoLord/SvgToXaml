@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
@@ -111,7 +110,40 @@ namespace SvgConverter
             AddNameSpaceDef(doc.Root, resKeyInfo);
             //ReplaceBrushesInDrawingGroups(doc.Root, resKeyInfo);
             AddDrawingImagesToDrawingGroups(doc.Root);
-            return doc.ToString();
+            var resultFile = doc.ToString();
+
+            var finallFile = string.Empty;
+            var strReader = new StringReader(resultFile);
+
+            while (true)
+            {
+                var line = strReader.ReadLine();
+                if (line == null) break;
+
+                var addingLine = line;
+
+                if (line.Contains("DrawingImage"))
+                {
+                    addingLine = line.Replace("DrawingImage", "DrawingBrush");
+
+                    if (line.Contains("x:Key"))
+                    {
+                        var rx = new Regex(@"x:Key=""(\w+)""",
+                            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+                        var match = rx.Match(line);
+                        var title = string.Empty;
+
+                        if (match.Success)
+                            title = $"\n<!-- {match.Groups[1].Value} -->";
+
+                        addingLine = $"{title}\n{addingLine}";
+                    }
+                }
+                finallFile += addingLine + "\n";
+            }
+
+            return finallFile;
         }
 
         public static IEnumerable<string> SvgFilesFromFolder(string folder)
