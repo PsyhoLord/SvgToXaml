@@ -127,7 +127,7 @@ namespace SvgConverter
                 {
                     addingLine = line.Replace("DrawingImage", "DrawingBrush");
 
-                    if (line.Contains("x:Key"))
+                    if (addingLine.Contains("x:Key"))
                     {
                         var rx = new Regex(@"x:Key=""(\w+)""",
                             RegexOptions.Compiled | RegexOptions.IgnoreCase);
