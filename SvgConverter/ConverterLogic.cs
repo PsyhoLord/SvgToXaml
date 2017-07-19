@@ -301,25 +301,28 @@ namespace SvgConverter
             return resultLine;
         }
 
+        private static void RemoveSlashes(string filePath)
+        {
+            var resultFile = new List<string>();
+            var fileStream = new StreamReader(filePath);
+
+            string line;
+            while ((line = fileStream.ReadLine()) != null)
+            {
+                if (!line.Contains("xmlns") && line.Contains("/"))
+                    resultFile.Add(RemoveSpecialCharacters(line));
+                else
+                    resultFile.Add(line);
+            }
+
+            fileStream.Close();
+            File.WriteAllLines(filePath, resultFile);
+        }
+
         internal static ResourceDictionary ConvertFilesToResourceDictionary(IEnumerable<string> files, WpfDrawingSettings wpfDrawingSettings, ResKeyInfo resKeyInfo)
         {
             foreach (var file in files)
-            {
-                var resultFile = new List<string>();
-                var fileStream = new StreamReader(file);
-
-                string line;
-                while ((line = fileStream.ReadLine()) != null)
-                {
-                    if (!line.Contains("xmlns") && line.Contains("/"))
-                        resultFile.Add(RemoveSpecialCharacters(line));
-                    else
-                        resultFile.Add(line);
-                }
-                
-                fileStream.Close();
-                File.WriteAllLines(file, resultFile);
-            }
+                RemoveSlashes(file);
 
             var dict = new ResourceDictionary();
             foreach (var file in files)
@@ -396,6 +399,7 @@ namespace SvgConverter
 
         internal static DrawingGroup SvgFileToWpfObject(string filepath, WpfDrawingSettings wpfDrawingSettings)
         {
+            RemoveSlashes(filepath);
             if (wpfDrawingSettings == null) //use defaults if null
                 wpfDrawingSettings = new WpfDrawingSettings { IncludeRuntime = false, TextAsGeometry = false, OptimizePath = true };
             var reader = new FileSvgReader(wpfDrawingSettings);
@@ -421,6 +425,7 @@ namespace SvgConverter
             //workaround: error when Id starts with a number
             var doc = XDocument.Load(Path.GetFullPath(filepath));
             ReplaceIdsWithNumbers(doc.Root); //id="3d-view-icon" -> id="_3d-view-icon"
+            
             using (var ms = new MemoryStream())
             {
                 doc.Save(ms);
