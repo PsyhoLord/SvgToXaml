@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -131,7 +132,7 @@ namespace SvgConverter
                         var rx = new Regex(@"x:Key=""(\w+)""",
                             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-                        var match = rx.Match(line);
+                        var match = rx.Match(addingLine);
                         var title = string.Empty;
 
                         if (match.Success)
@@ -143,6 +144,7 @@ namespace SvgConverter
                 finallFile += addingLine + "\n";
             }
 
+            Debug.WriteLine(finallFile);
             return finallFile;
         }
 
