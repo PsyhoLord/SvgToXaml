@@ -126,9 +126,14 @@ namespace SvgConverter
                 if (line.Contains("DrawingImage"))
                 {
                     addingLine = line.Replace("DrawingImage", "DrawingBrush");
-
+                    
                     if (addingLine.Contains("x:Key"))
                     {
+                        // Adding Stretch = Uniform
+                        var index = addingLine.IndexOf("DrawingBrush") + "DrawingBrush".Length + 1;
+                        addingLine = $"{addingLine.Substring(0, index)} Stretch=\"Uniform\" {addingLine.Substring(index)}";
+
+                        // Add title
                         var rx = new Regex(@"x:Key=""(\w+)""",
                             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -136,12 +141,12 @@ namespace SvgConverter
                         var title = string.Empty;
 
                         if (match.Success)
-                            title = $"\n<!-- {match.Groups[1].Value} -->";
+                            title = $"{Environment.NewLine}<!-- {match.Groups[1].Value} -->";
 
-                        addingLine = $"{title}\n{addingLine}";
+                        addingLine = $"{title}{Environment.NewLine}{addingLine}";
                     }
                 }
-                finallFile += addingLine + "\n";
+                finallFile += $"{addingLine}{Environment.NewLine}";
             }
 
             Debug.WriteLine(finallFile);
